@@ -6,7 +6,7 @@ internal static class Program
     {
         // this can stay this way
         // Console.WriteLine(System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location));
-        var filePath = Path.Combine(@"C:\Git\aot\InterpolationShepard\data\point-cloud-1k.raw");
+        var filePath = Path.Combine(@"C:\Git\Masters\nrg\InterpolationShepard\data\point-cloud-1k.raw");
 
         var binReader = new BinaryReader(File.Open(filePath, FileMode.Open));
 
