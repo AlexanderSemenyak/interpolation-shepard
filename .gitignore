@@ -1,0 +1,5 @@
+# Visual Studio cache directory
+.idea/
+.vs/
+bin/
+obj/
