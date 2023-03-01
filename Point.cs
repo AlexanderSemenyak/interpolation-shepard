@@ -17,5 +17,10 @@
         public float Z { get; set; }
 
         public float Value { get; set; }
+
+        public override string ToString()
+        {
+            return $"Point({X}, {Y}, {Z}):{Value}";
+        }
     }
 }
