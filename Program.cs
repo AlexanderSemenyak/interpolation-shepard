@@ -2,53 +2,53 @@
 
 internal static class Program
 {
-    private static readonly List<Point> _points = new();
-    private static readonly List<Point> _volume = new();
+    private static readonly List<Point> Points = new();
+    private static readonly List<Point> Volume = new();
     private const double P = 10.0;
 
     private static void Main(string[] args)
     {
         // this can stay this way
         // Console.WriteLine(System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location));
-        var filePath = Path.Combine(@"/home/wrath/git/interpolation-shepard/data/point-cloud-10k.raw");
+        var filePath = Path.Combine(@"C:\Git\Masters\nrg\InterpolationShepard/data/point-cloud-10k.raw");
 
         // Initialization of normalized data points and normalized volume
         LoadData(filePath);
         InitializeCubeVolume(16);
 
-        BinaryWriter dataOut = new BinaryWriter(new FileStream("output.ppm", FileMode.Create)); 
+        var dataOut = new BinaryWriter(new FileStream("output.ppm", FileMode.Create)); 
 
-        foreach (var volume_point in _volume)
+        foreach (var volumePoint in Volume)
         {
-            var shepard_interpolant = 0.0;
+            double shepardInterpolation;
 
-            var denominator_acummulated = 0.0;
-            var numerator_acummulated = 0.0;
+            var denominatorAccumulated = 0.0;
+            var numeratorAccumulated = 0.0;
 
-            foreach (var point in _points)
+            foreach (var point in Points)
             {
-                var distance = Math.Sqrt(Math.Pow(point.X - volume_point.X, 2) + Math.Pow(point.Y - volume_point.Y, 2) +
-                                         Math.Pow(point.Z - volume_point.Z, 2));
+                var distance = Math.Sqrt(Math.Pow(point.X - volumePoint.X, 2) + Math.Pow(point.Y - volumePoint.Y, 2) +
+                                         Math.Pow(point.Z - volumePoint.Z, 2));
                 if (distance <= 0.01) // 0.0 never hits
                 {
-                    numerator_acummulated = point.Value;
-                    denominator_acummulated = 1;
-                    Console.WriteLine("Break: for point " + point + " and volume point " + volume_point);
+                    numeratorAccumulated = point.Value;
+                    denominatorAccumulated = 1;
+                    Console.WriteLine("Break: for point " + point + " and volume point " + volumePoint);
                     break;
                 }
                 var weight = Math.Pow(distance, P);
-                numerator_acummulated += point.Value / weight;
-                denominator_acummulated += 1 / weight;
+                numeratorAccumulated += point.Value / weight;
+                denominatorAccumulated += 1 / weight;
             }
 
-            if (numerator_acummulated > denominator_acummulated) {
+            if (numeratorAccumulated > denominatorAccumulated) {
                 Console.WriteLine("Error");
-                shepard_interpolant = 0.0;
+                shepardInterpolation = 0.0;
             } else {
-                shepard_interpolant = numerator_acummulated / denominator_acummulated;
+                shepardInterpolation = numeratorAccumulated / denominatorAccumulated;
             }
             
-            if (shepard_interpolant > 1.0) {
+            if (shepardInterpolation > 1.0) {
                 Console.WriteLine("Woop error");
                 throw new NotSupportedException();
             } else {
@@ -56,7 +56,7 @@ internal static class Program
                                 //   shepard_interpolant);
             }
 
-            uint ppmValue = (uint)(shepard_interpolant * 255);
+            uint ppmValue = (uint)(shepardInterpolation * 255);
             dataOut.Write((byte) ppmValue);
         }
         dataOut.Close();
@@ -85,7 +85,7 @@ internal static class Program
         var dataPoints = binReader.ReadInt32();
 
         for (var i = 0; i < dataPoints; i++)
-            _points.Add(new Point(binReader.ReadSingle(), binReader.ReadSingle(), binReader.ReadSingle(),
+            Points.Add(new Point(binReader.ReadSingle(), binReader.ReadSingle(), binReader.ReadSingle(),
                 binReader.ReadSingle()));
     }
 }
