@@ -6,6 +6,10 @@ public class ShepardInterpolation
     private static readonly List<Point> Points = new();
     private static readonly List<Point> Volume = new();
 
+    private static readonly Point MaximumPoint = new(1.0f, 1.0f, 1.0f);
+    private static readonly Point MinimumPoint = new(0.0f, 0.0f, 0.3f);
+
+
     public void LoadData(string filePath)
     {
         var binReader = new BinaryReader(File.Open(filePath, FileMode.Open));
@@ -29,7 +33,13 @@ public class ShepardInterpolation
         foreach (var volumePoint in Volume)
         {
             var shepardInterpolation = Interpolate(volumePoint);
-            var ppmValue = (uint)(shepardInterpolation * 255);
+            uint ppmValue = shepardInterpolation switch
+            {
+                > 2.0f => 255,
+                < 0.0f => 0,
+                _ => (uint)(shepardInterpolation * 255)
+            };
+
             dataOut.Write((byte)ppmValue);
         }
 
@@ -43,7 +53,9 @@ public class ShepardInterpolation
     {
         var denominatorAccumulated = 0.0f;
         var numeratorAccumulated = 0.0f;
-
+        if (volumePoint.X > MaximumPoint.X || volumePoint.Y > MaximumPoint.Y || volumePoint.Z > MaximumPoint.Z ||
+            volumePoint.X < MinimumPoint.X || volumePoint.Y < MinimumPoint.Y || volumePoint.Z < MinimumPoint.Z)
+            return 0.0f;
         foreach (var point in Points)
         {
             var distance = Math.Sqrt(Math.Pow(point.X - volumePoint.X, 2) + Math.Pow(point.Y - volumePoint.Y, 2) +
@@ -74,7 +86,7 @@ public class ShepardInterpolation
             var x = k / xRes;
             var y = j / yRes;
             var z = i / zRes;
-            var point = new Point(x, y, z, 0);
+            var point = new Point(x, y, z);
             Volume.Add(point);
         }
 

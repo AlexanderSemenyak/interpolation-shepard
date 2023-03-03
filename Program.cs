@@ -7,7 +7,7 @@ internal static class Program
         get
         {
             var p = (int)Environment.OSVersion.Platform;
-            return p == 4 || p == 6 || p == 128;
+            return p is 4 or 6 or 128;
         }
     }
 
@@ -19,7 +19,7 @@ internal static class Program
 
         var shepardInterpolation = new ShepardInterpolation();
         shepardInterpolation.LoadData(filePath);
-        shepardInterpolation.InitializeVolume(16, 16, 8);
+        shepardInterpolation.InitializeVolume(16, 16, 32);
         shepardInterpolation.InterpolateToFile("output.ppm");
     }
 }
