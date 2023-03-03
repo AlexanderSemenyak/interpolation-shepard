@@ -65,19 +65,19 @@ public class ShepardInterpolation
         return shepardInterpolation;
     }
 
-    public void InitializeCubeVolume(int resolution)
+    public void InitializeCubeVolume(int xRes, int yRes, int zRes)
     {
-        for (var i = 0; i < resolution; i++)
-        for (var j = 0; j < resolution; j++)
-        for (var k = 0; k < resolution; k++)
+        for (var i = 0; i < zRes; i++)
+        for (var j = 0; j < yRes; j++)
+        for (var k = 0; k < xRes; k++)
         {
-            var x = k / (float)resolution;
-            var y = j / (float)resolution;
-            var z = i / (float)resolution;
+            var x = k / xRes;
+            var y = j / yRes;
+            var z = i / zRes;
             var point = new Point(x, y, z, 0);
             Volume.Add(point);
         }
 
-        Console.WriteLine($"LOG: Initialized volume with same resolution of {resolution}");
+        Console.WriteLine($"LOG: Initialized volume with resolution of {xRes}:{yRes}:{zRes}");
     }
 }
