@@ -15,10 +15,15 @@ public class ShepardInterpolation
         for (var i = 0; i < dataPoints; i++)
             Points.Add(new Point(binReader.ReadSingle(), binReader.ReadSingle(), binReader.ReadSingle(),
                 binReader.ReadSingle()));
+        
+        Console.WriteLine("LOG: Loaded data");        
     }
 
     public void InterpolateToFile(string outputFile)
     {
+        if (File.Exists(outputFile))
+            outputFile = outputFile.Replace(".", "Replaceable.");
+
         var dataOut = new BinaryWriter(new FileStream(outputFile, FileMode.Create));
         foreach (var volumePoint in Volume)
         {
@@ -51,6 +56,7 @@ public class ShepardInterpolation
         }
 
         dataOut.Close();
+        Console.WriteLine("LOG: Interpolated and wrote data to output file.");        
     }
 
     public void InitializeCubeVolume(int resolution)
@@ -65,5 +71,7 @@ public class ShepardInterpolation
             var point = new Point(x, y, z, 0);
             Volume.Add(point);
         }
+        
+        Console.WriteLine($"LOG: Initialized volume with same resolution of {resolution}");        
     }
 }
