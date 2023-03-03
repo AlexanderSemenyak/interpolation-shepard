@@ -15,8 +15,8 @@ public class ShepardInterpolation
         for (var i = 0; i < dataPoints; i++)
             Points.Add(new Point(binReader.ReadSingle(), binReader.ReadSingle(), binReader.ReadSingle(),
                 binReader.ReadSingle()));
-        
-        Console.WriteLine("LOG: Loaded data");        
+
+        Console.WriteLine("LOG: Loaded data");
     }
 
     public void InterpolateToFile(string outputFile)
@@ -27,36 +27,39 @@ public class ShepardInterpolation
         var dataOut = new BinaryWriter(new FileStream(outputFile, FileMode.Create));
         foreach (var volumePoint in Volume)
         {
-            var denominatorAccumulated = 0.0;
-            var numeratorAccumulated = 0.0;
-
-            foreach (var point in Points)
-            {
-                var distance = Math.Sqrt(Math.Pow(point.X - volumePoint.X, 2) + Math.Pow(point.Y - volumePoint.Y, 2) +
-                                         Math.Pow(point.Z - volumePoint.Z, 2));
-                if (distance <= 0.001) // 0.0 never hits
-                {
-                    numeratorAccumulated = point.Value;
-                    denominatorAccumulated = 1;
-                    Console.WriteLine("Break: for point " + point + " and volume point " + volumePoint);
-                    break;
-                }
-
-                var weight = Math.Pow(distance, P);
-                numeratorAccumulated += point.Value / weight;
-                denominatorAccumulated += 1 / weight;
-            }
-
-            var shepardInterpolation = numeratorAccumulated / denominatorAccumulated;
-
-            // Console.WriteLine("Interpolation for " + volume_point + " from every points is " +
-            //   shepard_interpolant);
+            var shepardInterpolation = Interpolate(volumePoint);
             var ppmValue = (uint)(shepardInterpolation * 255);
             dataOut.Write((byte)ppmValue);
         }
 
         dataOut.Close();
-        Console.WriteLine("LOG: Interpolated and wrote data to output file.");        
+        Console.WriteLine("LOG: Interpolated and wrote data to output file");
+    }
+
+    private static double Interpolate(Point volumePoint)
+    {
+        var denominatorAccumulated = 0.0;
+        var numeratorAccumulated = 0.0;
+
+        foreach (var point in Points)
+        {
+            var distance = Math.Sqrt(Math.Pow(point.X - volumePoint.X, 2) + Math.Pow(point.Y - volumePoint.Y, 2) +
+                                     Math.Pow(point.Z - volumePoint.Z, 2));
+            if (distance <= 0.001) // 0.0 never hits
+            {
+                numeratorAccumulated = point.Value;
+                denominatorAccumulated = 1;
+                Console.WriteLine("Break: for point " + point + " and volume point " + volumePoint);
+                break;
+            }
+
+            var weight = Math.Pow(distance, P);
+            numeratorAccumulated += point.Value / weight;
+            denominatorAccumulated += 1 / weight;
+        }
+
+        var shepardInterpolation = numeratorAccumulated / denominatorAccumulated;
+        return shepardInterpolation;
     }
 
     public void InitializeCubeVolume(int resolution)
@@ -71,7 +74,7 @@ public class ShepardInterpolation
             var point = new Point(x, y, z, 0);
             Volume.Add(point);
         }
-        
-        Console.WriteLine($"LOG: Initialized volume with same resolution of {resolution}");        
+
+        Console.WriteLine($"LOG: Initialized volume with same resolution of {resolution}");
     }
 }
