@@ -24,6 +24,7 @@ public class ShepardInterpolation
         if (File.Exists(outputFile))
             outputFile = outputFile.Replace(".", "Replaceable.");
 
+        var downTime = DateTime.Now;
         var dataOut = new BinaryWriter(new FileStream(outputFile, FileMode.Create));
         foreach (var volumePoint in Volume)
         {
@@ -33,7 +34,8 @@ public class ShepardInterpolation
         }
 
         dataOut.Close();
-        Console.WriteLine("LOG: Interpolated and wrote data to output file");
+        var elapsedTime = DateTime.Now - downTime;
+        Console.WriteLine($"LOG: Interpolated and wrote data to output file with elapsed time of {elapsedTime.ToString()}");
     }
 
     private static double Interpolate(Point volumePoint)
