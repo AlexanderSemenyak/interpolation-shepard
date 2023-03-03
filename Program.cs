@@ -64,17 +64,17 @@ internal static class Program
 
     private static void InitializeCubeVolume(int resolution)
     {
-        var length = Math.Sqrt(Math.Pow(resolution, 2) + Math.Pow(resolution, 2) + Math.Pow(resolution, 2));
         for (var i = 0; i < resolution; i++)
         for (var j = 0; j < resolution; j++)
         for (var k = 0; k < resolution; k++)
         {
             // normalized coordinates
             // var length = Math.Sqrt(Math.Pow(k, 2) + Math.Pow(j, 2) + Math.Pow(i, 2));
-            var x = (float)(k / length);
-            var y = (float)(j / length);
-            var z = (float)(i / length);
-            _volume.Add(new Point(x, y, z, 0));
+            float x = (float)k / (float)resolution;
+            float y = (float)j / (float)resolution;
+            float z = (float)i / (float)resolution;
+            var point = new Point(x, y, z, 0);
+            _volume.Add(point);
         }
     }
 
