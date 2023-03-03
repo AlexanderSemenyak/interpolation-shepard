@@ -35,13 +35,14 @@ public class ShepardInterpolation
 
         dataOut.Close();
         var elapsedTime = DateTime.Now - downTime;
-        Console.WriteLine($"LOG: Interpolated and wrote data to output file with elapsed time of {elapsedTime.ToString()}");
+        Console.WriteLine(
+            $"LOG: Interpolated and wrote data to output file with elapsed time of {elapsedTime.ToString()}");
     }
 
-    private static double Interpolate(Point volumePoint)
+    private static float Interpolate(Point volumePoint)
     {
-        var denominatorAccumulated = 0.0;
-        var numeratorAccumulated = 0.0;
+        var denominatorAccumulated = 0.0f;
+        var numeratorAccumulated = 0.0f;
 
         foreach (var point in Points)
         {
@@ -51,11 +52,11 @@ public class ShepardInterpolation
             {
                 numeratorAccumulated = point.Value;
                 denominatorAccumulated = 1;
-                Console.WriteLine("Break: for point " + point + " and volume point " + volumePoint);
+                Console.WriteLine($"LOG: Break for point {point} and volume point {volumePoint}");
                 break;
             }
 
-            var weight = Math.Pow(distance, P);
+            var weight = (float)Math.Pow(distance, P);
             numeratorAccumulated += point.Value / weight;
             denominatorAccumulated += 1 / weight;
         }
