@@ -65,11 +65,11 @@ public class ShepardInterpolation
         return shepardInterpolation;
     }
 
-    public void InitializeCubeVolume(int xRes, int yRes, int zRes)
+    public void InitializeVolume(int xRes, int yRes, int zRes)
     {
-        for (var i = 0; i < zRes; i++)
-        for (var j = 0; j < yRes; j++)
-        for (var k = 0; k < xRes; k++)
+        for (var i = 0.0f; i < zRes; i++)
+        for (var j = 0.0f; j < yRes; j++)
+        for (var k = 0.0f; k < xRes; k++)
         {
             var x = k / xRes;
             var y = j / yRes;
