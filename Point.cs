@@ -2,12 +2,19 @@
 
 internal class Point
 {
-    public Point(float v1, float v2, float v3, float v4)
+    public Point(float v1, float v2, float v3, float? v4)
     {
         X = v1;
         Y = v2;
         Z = v3;
-        Value = v4;
+        if (v4 != null) Value = (float)v4;
+    }
+
+    public Point(float v1, float v2, float v3)
+    {
+        X = v1;
+        Y = v2;
+        Z = v3;
     }
 
     public float X { get; set; }
