@@ -2,9 +2,9 @@
 
 internal static class Program
 {
+    private const double P = 10.0;
     private static readonly List<Point> Points = new();
     private static readonly List<Point> Volume = new();
-    private const double P = 10.0;
 
     private static void Main(string[] args)
     {
@@ -14,14 +14,12 @@ internal static class Program
 
         // Initialization of normalized data points and normalized volume
         LoadData(filePath);
-        InitializeCubeVolume(16);
+        InitializeCubeVolume(32);
 
-        var dataOut = new BinaryWriter(new FileStream("output.ppm", FileMode.Create)); 
+        var dataOut = new BinaryWriter(new FileStream("output.ppm", FileMode.Create));
 
         foreach (var volumePoint in Volume)
         {
-            double shepardInterpolation;
-
             var denominatorAccumulated = 0.0;
             var numeratorAccumulated = 0.0;
 
@@ -36,29 +34,20 @@ internal static class Program
                     Console.WriteLine("Break: for point " + point + " and volume point " + volumePoint);
                     break;
                 }
+
                 var weight = Math.Pow(distance, P);
                 numeratorAccumulated += point.Value / weight;
                 denominatorAccumulated += 1 / weight;
             }
 
-            if (numeratorAccumulated > denominatorAccumulated) {
-                Console.WriteLine("Error");
-                shepardInterpolation = 0.0;
-            } else {
-                shepardInterpolation = numeratorAccumulated / denominatorAccumulated;
-            }
-            
-            if (shepardInterpolation > 1.0) {
-                Console.WriteLine("Woop error");
-                throw new NotSupportedException();
-            } else {
-                // Console.WriteLine("Interpolation for " + volume_point + " from every points is " +
-                                //   shepard_interpolant);
-            }
+            var shepardInterpolation = numeratorAccumulated / denominatorAccumulated;
 
-            uint ppmValue = (uint)(shepardInterpolation * 255);
-            dataOut.Write((byte) ppmValue);
+            // Console.WriteLine("Interpolation for " + volume_point + " from every points is " +
+            //   shepard_interpolant);
+            var ppmValue = (uint)(shepardInterpolation * 255);
+            dataOut.Write((byte)ppmValue);
         }
+
         dataOut.Close();
     }
 
@@ -68,13 +57,11 @@ internal static class Program
         for (var j = 0; j < resolution; j++)
         for (var k = 0; k < resolution; k++)
         {
-            // normalized coordinates
-            // var length = Math.Sqrt(Math.Pow(k, 2) + Math.Pow(j, 2) + Math.Pow(i, 2));
-            float x = (float)k / (float)resolution;
-            float y = (float)j / (float)resolution;
-            float z = (float)i / (float)resolution;
+            var x = k / (float)resolution;
+            var y = j / (float)resolution;
+            var z = i / (float)resolution;
             var point = new Point(x, y, z, 0);
-            _volume.Add(point);
+            Volume.Add(point);
         }
     }
 
