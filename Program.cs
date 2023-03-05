@@ -16,12 +16,11 @@ internal static class Program
         var projectDirectory = IsLinux
             ? Environment.CurrentDirectory
             : Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName;
-
-        var filePath = Path.Combine(projectDirectory + "/data/point-cloud-10k.raw");
+        var filePath = Path.Combine(projectDirectory + "/data/point-cloud-100k.raw");
         
         var shepardInterpolation = new ShepardInterpolation();
         shepardInterpolation.LoadData(filePath);
-        var volume = ShepardInterpolation.InitializeVolume(32, 32, 32);
+        var volume = ShepardInterpolation.InitializeVolume(256, 256, 256);
         shepardInterpolation.InterpolateToFile(volume, ShepardInterpolation.Interpolation.Modified, "output.ppm");
     }
 }

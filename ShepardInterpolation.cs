@@ -18,7 +18,6 @@ internal class ShepardInterpolation
     public void LoadData(string filePath)
     {
         var binReader = new BinaryReader(File.Open(filePath, FileMode.Open));
-
         var dataPoints = binReader.ReadInt32();
 
         for (var i = 0; i < dataPoints; i++)
@@ -42,7 +41,6 @@ internal class ShepardInterpolation
                 foreach (var volumePoint in volume)
                 {
                     var shepardInterpolation = InterpolateBasic(volumePoint);
-
                     var ppmValue = (uint)(shepardInterpolation * 255.0f);
                     dataOut.Write((byte)ppmValue);
                 }
@@ -52,16 +50,16 @@ internal class ShepardInterpolation
             case Interpolation.Modified:
             {
                 var octree = new Octree(_points, MinimumPoint, MaximumPoint);
-                octree.Initialize(8);
+                octree.Initialize(16);
 
                 foreach (var volumePoint in volume)
                 {
                     var denominator = 0.0f;
                     var numerator = 0.0f;
 
-                    if (Octree.ViableNodes != null)
-                        foreach (var viableNode in Octree.ViableNodes)
-                            if (viableNode.Contains(volumePoint, R))
+                    if (Octree.ViableNodes != null) {
+                        foreach (var viableNode in Octree.ViableNodes) {
+                            if (viableNode.Contains(volumePoint, R)) {
                                 foreach (var point in viableNode.GetPoints())
                                 {
                                     var distance = volumePoint.DistanceTo(point);
@@ -70,16 +68,18 @@ internal class ShepardInterpolation
                                     numerator +=
                                         (float)Math.Pow(Math.Max(0, R - distance) / (R * distance), 2) * point.Value;
                                 }
+                            }
+                        }
+                    }
 
                     var shInterpolationModified = numerator / denominator;
                     var ppmValue = (uint)(shInterpolationModified * 255.0f);
 
                     // TODO: temp solution
-                    if (volumePoint.X > MaximumPoint.X || volumePoint.Y > MaximumPoint.Y ||
-                        volumePoint.Z > MaximumPoint.Z ||
-                        volumePoint.X < MinimumPoint.X || volumePoint.Y < MinimumPoint.Y ||
-                        volumePoint.Z < MinimumPoint.Z)
-                        ppmValue = 0;
+                    // if (volumePoint.X > MaximumPoint.X || volumePoint.Y > MaximumPoint.Y ||
+                    //     volumePoint.Z > MaximumPoint.Z || volumePoint.X < MinimumPoint.X ||
+                    //     volumePoint.Y < MinimumPoint.Y || volumePoint.Z < MinimumPoint.Z)
+                    //     ppmValue = 0;
 
                     dataOut.Write((byte)ppmValue);
                 }
