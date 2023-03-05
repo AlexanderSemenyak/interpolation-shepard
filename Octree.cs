@@ -13,17 +13,17 @@ internal class Octree
         ViableNodes = new List<OctreeNode>();
     }
 
-    public void Initialize()
+    public void Initialize(int maxDepth)
     {
-        _parentNode.Initialize();
+        _parentNode.Initialize(maxDepth);
     }
 }
 
 internal class OctreeNode
 {
     private readonly List<OctreeNode> _children;
-    private readonly Point _maximumPoint;
-    private readonly Point _minimumPoint;
+    public readonly Point _maximumPoint;
+    public readonly Point _minimumPoint;
     private readonly List<Point> _points;
 
     public OctreeNode(List<Point> points, Point minimumPoint, Point maximumPoint)
@@ -34,13 +34,17 @@ internal class OctreeNode
         _children = new List<OctreeNode>(8);
     }
 
-    public bool Contains(Point volumePoint)
+    public bool Contains(Point point, float radius)
     {
-        return _minimumPoint.X < volumePoint.X && _minimumPoint.Y < volumePoint.Y && _minimumPoint.Z < volumePoint.Z &&
-               _maximumPoint.X > volumePoint.X && _maximumPoint.Y > volumePoint.Y && _maximumPoint.Z > volumePoint.Z;
+        var expandedMin = new Point(_minimumPoint.X - radius, _minimumPoint.Y - radius, _minimumPoint.Z - radius);
+        var expandedMax = new Point(_maximumPoint.X + radius, _maximumPoint.Y + radius, _maximumPoint.Z + radius);
+
+        return point.X >= expandedMin.X && point.X <= expandedMax.X
+                                        && point.Y >= expandedMin.Y && point.Y <= expandedMax.Y
+                                        && point.Z >= expandedMin.Z && point.Z <= expandedMax.Z;
     }
 
-    public void Initialize()
+    public void Initialize(int maxDepth)
     {
         List<Point> bottomLeftBack = new(),
             bottomLeftFront = new(),
@@ -96,7 +100,7 @@ internal class OctreeNode
 
         foreach (var child in _children)
             if (child._points.Count > Octree.MaxPointsOctant)
-                child.Initialize();
+                child.Initialize(maxDepth - 1);
             else
                 Octree.ViableNodes?.Add(child);
     }
