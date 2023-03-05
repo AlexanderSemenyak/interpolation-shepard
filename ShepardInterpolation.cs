@@ -71,13 +71,16 @@ internal class ShepardInterpolation
                     var z = k / zRes;
                     var volumePoint = new Point(x, y, z);
 
-                    var shInterpolationModified = GetModifiedInterpolation(volumePoint);
-                    _valuesForOutput.Add(shInterpolationModified);
                     // TODO: temp solution
-                    // if (volumePoint.X > MaximumPoint.X || volumePoint.Y > MaximumPoint.Y ||
-                    //     volumePoint.Z > MaximumPoint.Z || volumePoint.X < MinimumPoint.X ||
-                    //     volumePoint.Y < MinimumPoint.Y || volumePoint.Z < MinimumPoint.Z)
-                    //     ppmValue = 0;
+                    if (volumePoint.X > _maximumPoint.X || volumePoint.Y > _maximumPoint.Y || volumePoint.Z > _maximumPoint.Z || 
+                        volumePoint.X < _minimumPoint.X || volumePoint.Y < _minimumPoint.Y || volumePoint.Z < _minimumPoint.Z) {
+                        _valuesForOutput.Add(0.0f);
+                    }
+                    else
+                    {
+                        var shInterpolationModified = GetModifiedInterpolation(volumePoint);
+                        _valuesForOutput.Add(shInterpolationModified);
+                    }
                 }
 
                 break;
