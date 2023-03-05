@@ -51,26 +51,9 @@ public class ShepardInterpolation
             }
             case Interpolation.Modified:
             {
-                var octree = new Octree(_points, MinimumPoint, MaximumPoint);
-
-                foreach (var volumePoint in _volume)
-                {
-                    foreach (var octreeNode in octree.GetParentNode().GetChildren())
-                    {
-                        if (octreeNode.Contains(volumePoint))
-                        {
-                            foreach (var point in octreeNode.GetPoints())
-                            {
-                                // modified shepard method
-                            }
-                        }
-                    }
-                    
-                    
-                    var shepardInterpolation = InterpolateModified(volumePoint);
-                    dataOut.Write((byte)((uint)shepardInterpolation * 255));
-                }
-
+                var parentOctreeNode = new OctreeNode(_points, MinimumPoint, MaximumPoint);
+                parentOctreeNode.Initialize();
+                
                 break;
             }
             default:

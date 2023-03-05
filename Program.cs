@@ -22,6 +22,6 @@ internal static class Program
         var shepardInterpolation = new ShepardInterpolation();
         shepardInterpolation.LoadData(filePath);
         shepardInterpolation.InitializeVolume(16, 16, 16);
-        shepardInterpolation.InterpolateToFile(ShepardInterpolation.Interpolation.Basic, "output.ppm");
+        shepardInterpolation.InterpolateToFile(ShepardInterpolation.Interpolation.Modified, "output.ppm");
     }
 }
