@@ -36,14 +36,12 @@ internal class OctreeNode
 
     public bool Contains(Point volumePoint)
     {
-        throw new NotImplementedException();
+        return _minimumPoint.X < volumePoint.X && _minimumPoint.Y < volumePoint.Y && _minimumPoint.Z < volumePoint.Z &&
+               _maximumPoint.X > volumePoint.X && _maximumPoint.Y > volumePoint.Y && _maximumPoint.Z > volumePoint.Z;
     }
 
     public void Initialize()
     {
-        if (!_maximumPoint.IsValid() && !_minimumPoint.IsValid())
-            return;
-
         List<Point> bottomLeftBack = new(),
             bottomLeftFront = new(),
             topLeftBack = new(),
