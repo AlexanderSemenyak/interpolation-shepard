@@ -27,7 +27,7 @@ internal class ShepardInterpolation
         Console.WriteLine($"LOG: Loaded data with path: {filePath}");
     }
 
-    public void InterpolateToFile(Point[] volume, Interpolation type, string outputFile)
+    public void InterpolateToFile(int xRes, int yRes, int zRes, Interpolation type, string outputFile)
     {
         if (File.Exists(outputFile))
             outputFile = outputFile.Replace(".", "Replaceable.");
@@ -38,12 +38,17 @@ internal class ShepardInterpolation
         {
             case Interpolation.Basic:
             {
-                for (int i = 0; i < volume.Length; i++)
+                for (var k = 0.0f; k < zRes; k++)
+                for (var j = 0.0f; j < yRes; j++)
+                for (var i = 0.0f; i < xRes; i++)
                 {
-                    var shepardInterpolation = InterpolateBasic(volume[i]);
+                    var x = i / xRes;
+                    var y = j / yRes;
+                    var z = k / zRes;
+                    var volumePoint = new Point(x, y, z);
+                    var shepardInterpolation = InterpolateBasic(volumePoint);
 
-                    if (i % 500 == 0)
-                        Console.WriteLine($"LOG: Finished {(double)i / volume.Length * 100} % of the volume");
+                    // Console.WriteLine($"LOG: Finished {(double)i / volumePoint.Length * 100} % of the volume");
 
                     var ppmValue = (uint)(shepardInterpolation * 255.0f);
                     dataOut.Write((byte)ppmValue);
@@ -54,34 +59,43 @@ internal class ShepardInterpolation
             case Interpolation.Modified:
             {
                 var octree = new Octree(_points, MinimumPoint, MaximumPoint);
-                octree.Initialize(16);
+                octree.Initialize(8);
 
-                for (int i = 0; i < volume.Length; i++)
+                for (var k = 0.0f; k < zRes; k++)
+                for (var j = 0.0f; j < yRes; j++)
+                for (var i = 0.0f; i < xRes; i++)
                 {
+                    var x = i / xRes;
+                    var y = j / yRes;
+                    var z = k / zRes;
+                    var volumePoint = new Point(x, y, z);
+
                     var denominator = 0.0f;
                     var numerator = 0.0f;
 
-                    if (Octree.ViableNodes != null)
-                    {
-                        foreach (var viableNode in Octree.ViableNodes)
-                        {
-                            if (viableNode.Contains(volume[i], R))
-                            {
-                                foreach (var point in viableNode.GetPoints())
-                                {
-                                    var distance = volume[i].DistanceTo(point);
-                                    denominator +=
-                                        (float)Math.Pow(Math.Max(0, R - distance) / (R * distance), 2);
-                                    numerator +=
-                                        (float)Math.Pow(Math.Max(0, R - distance) / (R * distance), 2) *
-                                        point.Value;
-                                }
-                            }
-                        }
-                    }
+                    if (Octree.ViableNodes == null) continue;
 
-                    if (i % 500 == 0)
-                        Console.WriteLine($"LOG: Finished {(double)i / volume.Length * 100} % of the volume");
+                    foreach (var viableNode in Octree.ViableNodes)
+                        // if (viableNode.Contains(volume[i], R))
+                    foreach (var point in viableNode.GetPoints())
+                    {
+                        var distance = volumePoint.DistanceTo(point);
+
+                        if (distance <= 0.001) // 0.0 never hits
+                        {
+                            numerator = point.Value;
+                            denominator = 1;
+                            Console.WriteLine($"LOG: Break for point {point} and volume point {volumePoint}");
+                            break;
+                        }
+
+                        if (!(distance < R)) continue;
+                        var value = (R - distance) / (R * distance);
+                        var weight = value * value;
+
+                        denominator += weight;
+                        numerator += weight * point.Value;
+                    }
 
                     var shInterpolationModified = numerator / denominator;
                     var ppmValue = (uint)(shInterpolationModified * 255.0f);
@@ -91,7 +105,6 @@ internal class ShepardInterpolation
                     //     volumePoint.Z > MaximumPoint.Z || volumePoint.X < MinimumPoint.X ||
                     //     volumePoint.Y < MinimumPoint.Y || volumePoint.Z < MinimumPoint.Z)
                     //     ppmValue = 0;
-
                     dataOut.Write((byte)ppmValue);
                 }
 

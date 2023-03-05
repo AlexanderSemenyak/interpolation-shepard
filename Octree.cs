@@ -16,6 +16,8 @@ internal class Octree
     public void Initialize(int maxDepth)
     {
         _parentNode.Initialize(maxDepth);
+        Console.WriteLine($"LOG: Initialized octree max with depth of {maxDepth}");
+
     }
 }
 
