@@ -16,15 +16,15 @@ internal static class Program
         var projectDirectory = IsLinux
             ? Environment.CurrentDirectory
             : Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName;
-        var inputFilePath = Path.Combine(projectDirectory + "/data/point-cloud-10k.raw");
+        var inputFilePath = Path.Combine(projectDirectory + "/data/point-cloud-100k.raw");
 
         // default values
-        string outputFilePath = "output.ppm", type = "modified";
+        string outputFilePath = "output.raw", type = "modified";
         var parameterP = 10.0;
         float parameterRadius = 0.5f,
             xMin = 0.0f, yMin = 0.0f, zMin = 0.0f,
             xMax = 1.0f, yMax = 1.0f, zMax = 1.0f;
-        int xRes = 64, yRes = 64, zRes = 64;
+        int xRes = 32, yRes = 32, zRes = 32;
 
         for (var i = 0; i < args.Length; i++)
             switch (args[i])
@@ -78,6 +78,6 @@ internal static class Program
         var shepardInterpolation = 
             new ShepardInterpolation(parameterP, parameterRadius, xMin, yMin, zMin, xMax, yMax, zMax);
         shepardInterpolation.LoadData(inputFilePath);
-        shepardInterpolation.InterpolateToFile(xRes, yRes, zRes, type, outputFilePath);
+        shepardInterpolation.InterpolateToFile(xRes, yRes, zRes, type, outputFilePath, "output.ppm");
     }
 }

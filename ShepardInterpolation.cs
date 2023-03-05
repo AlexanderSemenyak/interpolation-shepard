@@ -8,7 +8,7 @@ internal class ShepardInterpolation
     private static Point _maximumPoint = new(1.0f, 1.0f, 1.0f);
     private static Point _minimumPoint = new(0.0f, 0.0f, 0.0f);
     private readonly List<Point> _points = new();
-    private readonly List<uint> _writeValues = new();
+    private readonly List<float> _valuesForOutput = new();
 
     public ShepardInterpolation(double parameterP, float parameterRadius, float xMin, float yMin, float zMin,
         float xMax, float yMax, float zMax)
@@ -32,10 +32,10 @@ internal class ShepardInterpolation
         Console.WriteLine($"LOG: Loaded data with path: {filePath}");
     }
 
-    public void InterpolateToFile(int xRes, int yRes, int zRes, string type, string outputFile)
+    public void InterpolateToFile(int xRes, int yRes, int zRes, string type, string outputFile, string outputFileVisualization)
     {
-        if (File.Exists(outputFile))
-            outputFile = outputFile.Replace(".", "Replaceable.");
+        if (File.Exists(outputFileVisualization))
+            outputFileVisualization = outputFileVisualization.Replace(".", "Replaceable.");
 
         var downTime = DateTime.Now;
         switch (type)
@@ -50,10 +50,9 @@ internal class ShepardInterpolation
                     var y = j / yRes;
                     var z = k / zRes;
                     var volumePoint = new Point(x, y, z);
-                    var shepardInterpolation = GetBasicInterpolation(volumePoint);
+                    var shInterpolationBasic = GetBasicInterpolation(volumePoint);
 
-                    var ppmValue = (uint)(shepardInterpolation * 255.0f);
-                    _writeValues.Add(ppmValue);
+                    _valuesForOutput.Add(shInterpolationBasic);
                 }
 
                 break;
@@ -73,9 +72,7 @@ internal class ShepardInterpolation
                     var volumePoint = new Point(x, y, z);
 
                     var shInterpolationModified = GetModifiedInterpolation(volumePoint);
-                    var ppmValue = (uint)(shInterpolationModified * 255.0f);
-
-                    _writeValues.Add(ppmValue);
+                    _valuesForOutput.Add(shInterpolationModified);
                     // TODO: temp solution
                     // if (volumePoint.X > MaximumPoint.X || volumePoint.Y > MaximumPoint.Y ||
                     //     volumePoint.Z > MaximumPoint.Z || volumePoint.X < MinimumPoint.X ||
@@ -93,11 +90,18 @@ internal class ShepardInterpolation
         Console.WriteLine(
             $"LOG: Interpolated and wrote data to output file with elapsed time of {elapsedTime.ToString()}");
 
-        Console.Write("LOG: Writing to file...");
-        var dataOut = new BinaryWriter(new FileStream(outputFile, FileMode.Create));
-        foreach (var writeValue in _writeValues) dataOut.Write((byte)writeValue);
-        dataOut.Close();
-        Console.Write("DONE, exiting");
+        Console.Write("LOG: Writing to visualization file file...");
+        var dataOutVisualization = new BinaryWriter(new FileStream(outputFileVisualization, FileMode.Create));
+        var dataOutput = new BinaryWriter(new FileStream(outputFile, FileMode.Create));
+        foreach (var value in _valuesForOutput)
+        {
+            var ppmValue = (uint)(value * 255.0f);
+            dataOutVisualization.Write((byte)ppmValue);
+            dataOutput.Write(value);
+        }
+        dataOutVisualization.Close();
+        dataOutput.Close();
+        Console.Write("DONE, exiting\n");
     }
 
     private static float GetModifiedInterpolation(Point volumePoint)
