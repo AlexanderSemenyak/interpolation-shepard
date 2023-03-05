@@ -2,12 +2,6 @@
 
 internal class ShepardInterpolation
 {
-    public enum Interpolation
-    {
-        Basic,
-        Modified
-    }
-
     private static double _p = 10.0f;
     private static float _r = 0.5f;
 
