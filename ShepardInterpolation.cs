@@ -14,6 +14,7 @@ internal class ShepardInterpolation
     private static readonly Point MaximumPoint = new(1.0f, 1.0f, 1.0f);
     private static readonly Point MinimumPoint = new(0.0f, 0.0f, 0.0f);
     private readonly List<Point> _points = new();
+    private readonly List<uint> _writeValues = new();
 
     public void LoadData(string filePath)
     {
@@ -33,7 +34,6 @@ internal class ShepardInterpolation
             outputFile = outputFile.Replace(".", "Replaceable.");
 
         var downTime = DateTime.Now;
-        var dataOut = new BinaryWriter(new FileStream(outputFile, FileMode.Create));
         switch (type)
         {
             case Interpolation.Basic:
@@ -51,7 +51,7 @@ internal class ShepardInterpolation
                     // Console.WriteLine($"LOG: Finished {(double)i / volumePoint.Length * 100} % of the volume");
 
                     var ppmValue = (uint)(shepardInterpolation * 255.0f);
-                    dataOut.Write((byte)ppmValue);
+                    _writeValues.Add(ppmValue);
                 }
 
                 break;
@@ -100,12 +100,12 @@ internal class ShepardInterpolation
                     var shInterpolationModified = numerator / denominator;
                     var ppmValue = (uint)(shInterpolationModified * 255.0f);
 
+                    _writeValues.Add(ppmValue);
                     // TODO: temp solution
                     // if (volumePoint.X > MaximumPoint.X || volumePoint.Y > MaximumPoint.Y ||
                     //     volumePoint.Z > MaximumPoint.Z || volumePoint.X < MinimumPoint.X ||
                     //     volumePoint.Y < MinimumPoint.Y || volumePoint.Z < MinimumPoint.Z)
                     //     ppmValue = 0;
-                    dataOut.Write((byte)ppmValue);
                 }
 
                 break;
@@ -114,10 +114,15 @@ internal class ShepardInterpolation
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
         }
 
-        dataOut.Close();
         var elapsedTime = DateTime.Now - downTime;
         Console.WriteLine(
             $"LOG: Interpolated and wrote data to output file with elapsed time of {elapsedTime.ToString()}");
+
+        Console.Write("LOG: Writing to file...");
+        var dataOut = new BinaryWriter(new FileStream(outputFile, FileMode.Create));
+        foreach (var writeValue in _writeValues) dataOut.Write((byte)writeValue);
+        dataOut.Close();
+        Console.Write("DONE, exiting");
     }
 
     private float InterpolateBasic(Point volumePoint)
