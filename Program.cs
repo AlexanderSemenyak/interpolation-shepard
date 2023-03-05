@@ -13,13 +13,15 @@ internal static class Program
 
     private static void Main(string[] args)
     {
-        var projectDirectory = IsLinux ? Environment.CurrentDirectory : Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName;
+        var projectDirectory = IsLinux
+            ? Environment.CurrentDirectory
+            : Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName;
 
         var filePath = Path.Combine(projectDirectory + "/data/point-cloud-10k.raw");
 
         var shepardInterpolation = new ShepardInterpolation();
         shepardInterpolation.LoadData(filePath);
-        shepardInterpolation.InitializeVolume(16, 16, 32);
-        shepardInterpolation.InterpolateToFile("output.ppm");
+        shepardInterpolation.InitializeVolume(16, 16, 16);
+        shepardInterpolation.InterpolateToFile(ShepardInterpolation.Interpolation.Basic, "output.ppm");
     }
 }

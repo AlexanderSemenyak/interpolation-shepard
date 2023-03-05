@@ -3,12 +3,17 @@
 public class ShepardInterpolation
 {
     private const double P = 10.0;
-    private static readonly List<Point> Points = new();
-    private static readonly List<Point> Volume = new();
+    private readonly List<Point> _points = new();
+    private readonly List<Point> _volume = new();
 
     private static readonly Point MaximumPoint = new(1.0f, 1.0f, 1.0f);
-    private static readonly Point MinimumPoint = new(0.0f, 0.0f, 0.3f);
+    private static readonly Point MinimumPoint = new(0.0f, 0.0f, 0.0f);
 
+    public enum Interpolation
+    {
+        Basic,
+        Modified
+    }
 
     public void LoadData(string filePath)
     {
@@ -17,30 +22,59 @@ public class ShepardInterpolation
         var dataPoints = binReader.ReadInt32();
 
         for (var i = 0; i < dataPoints; i++)
-            Points.Add(new Point(binReader.ReadSingle(), binReader.ReadSingle(), binReader.ReadSingle(),
+            _points.Add(new Point(binReader.ReadSingle(), binReader.ReadSingle(), binReader.ReadSingle(),
                 binReader.ReadSingle()));
 
         Console.WriteLine("LOG: Loaded data");
     }
 
-    public void InterpolateToFile(string outputFile)
+    public void InterpolateToFile(Interpolation type, string outputFile)
     {
         if (File.Exists(outputFile))
             outputFile = outputFile.Replace(".", "Replaceable.");
 
         var downTime = DateTime.Now;
         var dataOut = new BinaryWriter(new FileStream(outputFile, FileMode.Create));
-        foreach (var volumePoint in Volume)
+        switch (type)
         {
-            var shepardInterpolation = Interpolate(volumePoint);
-            uint ppmValue = shepardInterpolation switch
+            case Interpolation.Basic:
             {
-                > 2.0f => 255,
-                < 0.0f => 0,
-                _ => (uint)(shepardInterpolation * 255)
-            };
+                foreach (var volumePoint in _volume)
+                {
+                    var shepardInterpolation = InterpolateBasic(volumePoint);
 
-            dataOut.Write((byte)ppmValue);
+                    var ppmValue = (uint)(shepardInterpolation * 255.0f);
+                    dataOut.Write((byte)ppmValue);
+                }
+
+                break;
+            }
+            case Interpolation.Modified:
+            {
+                var octree = new Octree(_points, MinimumPoint, MaximumPoint);
+
+                foreach (var volumePoint in _volume)
+                {
+                    foreach (var octreeNode in octree.GetParentNode().GetChildren())
+                    {
+                        if (octreeNode.Contains(volumePoint))
+                        {
+                            foreach (var point in octreeNode.GetPoints())
+                            {
+                                // modified shepard method
+                            }
+                        }
+                    }
+                    
+                    
+                    var shepardInterpolation = InterpolateModified(volumePoint);
+                    dataOut.Write((byte)((uint)shepardInterpolation * 255));
+                }
+
+                break;
+            }
+            default:
+                throw new ArgumentOutOfRangeException(nameof(type), type, null);
         }
 
         dataOut.Close();
@@ -49,14 +83,19 @@ public class ShepardInterpolation
             $"LOG: Interpolated and wrote data to output file with elapsed time of {elapsedTime.ToString()}");
     }
 
-    private static float Interpolate(Point volumePoint)
+    private float InterpolateModified(Point volumePoint)
+    {
+        throw new NotImplementedException();
+    }
+
+    private float InterpolateBasic(Point volumePoint)
     {
         var denominatorAccumulated = 0.0f;
         var numeratorAccumulated = 0.0f;
         if (volumePoint.X > MaximumPoint.X || volumePoint.Y > MaximumPoint.Y || volumePoint.Z > MaximumPoint.Z ||
             volumePoint.X < MinimumPoint.X || volumePoint.Y < MinimumPoint.Y || volumePoint.Z < MinimumPoint.Z)
             return 0.0f;
-        foreach (var point in Points)
+        foreach (var point in _points)
         {
             var distance = Math.Sqrt(Math.Pow(point.X - volumePoint.X, 2) + Math.Pow(point.Y - volumePoint.Y, 2) +
                                      Math.Pow(point.Z - volumePoint.Z, 2));
@@ -87,7 +126,7 @@ public class ShepardInterpolation
             var y = j / yRes;
             var z = i / zRes;
             var point = new Point(x, y, z);
-            Volume.Add(point);
+            _volume.Add(point);
         }
 
         Console.WriteLine($"LOG: Initialized volume with resolution of {xRes}:{yRes}:{zRes}");
