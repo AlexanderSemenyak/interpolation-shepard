@@ -36,4 +36,9 @@ internal class Point
                !(Y > 1.0f) && !(Y < 0.0f) &&
                !(Z > 1.0f) && !(Z < 0.0f);
     }
+
+    public float DistanceTo(Point point)
+    {
+        return (float)Math.Sqrt(Math.Pow(X - point.X, 2) + Math.Pow(Y - point.Y, 2) + Math.Pow(Z - point.Z, 2));
+    }
 }
