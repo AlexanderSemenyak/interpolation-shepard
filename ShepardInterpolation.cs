@@ -27,7 +27,7 @@ internal class ShepardInterpolation
         Console.WriteLine($"LOG: Loaded data with path: {filePath}");
     }
 
-    public void InterpolateToFile(IEnumerable<Point> volume, Interpolation type, string outputFile)
+    public void InterpolateToFile(Point[] volume, Interpolation type, string outputFile)
     {
         if (File.Exists(outputFile))
             outputFile = outputFile.Replace(".", "Replaceable.");
@@ -38,9 +38,13 @@ internal class ShepardInterpolation
         {
             case Interpolation.Basic:
             {
-                foreach (var volumePoint in volume)
+                for (int i = 0; i < volume.Length; i++)
                 {
-                    var shepardInterpolation = InterpolateBasic(volumePoint);
+                    var shepardInterpolation = InterpolateBasic(volume[i]);
+
+                    if (i % 500 == 0)
+                        Console.WriteLine($"LOG: Finished {(double)i / volume.Length * 100} % of the volume");
+
                     var ppmValue = (uint)(shepardInterpolation * 255.0f);
                     dataOut.Write((byte)ppmValue);
                 }
@@ -52,25 +56,32 @@ internal class ShepardInterpolation
                 var octree = new Octree(_points, MinimumPoint, MaximumPoint);
                 octree.Initialize(16);
 
-                foreach (var volumePoint in volume)
+                for (int i = 0; i < volume.Length; i++)
                 {
                     var denominator = 0.0f;
                     var numerator = 0.0f;
 
-                    if (Octree.ViableNodes != null) {
-                        foreach (var viableNode in Octree.ViableNodes) {
-                            if (viableNode.Contains(volumePoint, R)) {
+                    if (Octree.ViableNodes != null)
+                    {
+                        foreach (var viableNode in Octree.ViableNodes)
+                        {
+                            if (viableNode.Contains(volume[i], R))
+                            {
                                 foreach (var point in viableNode.GetPoints())
                                 {
-                                    var distance = volumePoint.DistanceTo(point);
+                                    var distance = volume[i].DistanceTo(point);
                                     denominator +=
                                         (float)Math.Pow(Math.Max(0, R - distance) / (R * distance), 2);
                                     numerator +=
-                                        (float)Math.Pow(Math.Max(0, R - distance) / (R * distance), 2) * point.Value;
+                                        (float)Math.Pow(Math.Max(0, R - distance) / (R * distance), 2) *
+                                        point.Value;
                                 }
                             }
                         }
                     }
+
+                    if (i % 500 == 0)
+                        Console.WriteLine($"LOG: Finished {(double)i / volume.Length * 100} % of the volume");
 
                     var shInterpolationModified = numerator / denominator;
                     var ppmValue = (uint)(shInterpolationModified * 255.0f);
@@ -123,7 +134,7 @@ internal class ShepardInterpolation
         return shepardInterpolation;
     }
 
-    public static IEnumerable<Point> InitializeVolume(int xRes, int yRes, int zRes)
+    public Point[] InitializeVolume(int xRes, int yRes, int zRes)
     {
         var volume = new Point[xRes * yRes * zRes];
         var index = 0;

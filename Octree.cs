@@ -2,7 +2,7 @@
 
 internal class Octree
 {
-    public const int MaxPointsOctant = 200;
+    public const int MaxPointsOctant = 100;
 
     public static List<OctreeNode>? ViableNodes;
     private readonly OctreeNode _parentNode;
