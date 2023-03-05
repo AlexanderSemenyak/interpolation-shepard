@@ -22,8 +22,8 @@ internal class Octree
 internal class OctreeNode
 {
     private readonly List<OctreeNode> _children;
-    public readonly Point _maximumPoint;
-    public readonly Point _minimumPoint;
+    private readonly Point _maximumPoint;
+    private readonly Point _minimumPoint;
     private readonly List<Point> _points;
 
     public OctreeNode(List<Point> points, Point minimumPoint, Point maximumPoint)
@@ -36,12 +36,9 @@ internal class OctreeNode
 
     public bool Contains(Point point, float radius)
     {
-        var expandedMin = new Point(_minimumPoint.X - radius, _minimumPoint.Y - radius, _minimumPoint.Z - radius);
-        var expandedMax = new Point(_maximumPoint.X + radius, _maximumPoint.Y + radius, _maximumPoint.Z + radius);
-
-        return point.X >= expandedMin.X && point.X <= expandedMax.X
-                                        && point.Y >= expandedMin.Y && point.Y <= expandedMax.Y
-                                        && point.Z >= expandedMin.Z && point.Z <= expandedMax.Z;
+        return point.X > _minimumPoint.X - radius && point.X < _maximumPoint.X + radius &&
+               point.Y > _minimumPoint.Y - radius && point.Y < _maximumPoint.Y + radius &&
+               point.Z > _minimumPoint.Y - radius && point.Z < _maximumPoint.Z + radius;
     }
 
     public void Initialize(int maxDepth)

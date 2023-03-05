@@ -1,6 +1,6 @@
 ﻿namespace InterpolationShepard;
 
-public class ShepardInterpolation
+internal class ShepardInterpolation
 {
     public enum Interpolation
     {
@@ -12,9 +12,8 @@ public class ShepardInterpolation
     private const float R = 1.0f;
 
     private static readonly Point MaximumPoint = new(1.0f, 1.0f, 1.0f);
-    private static readonly Point MinimumPoint = new(0.4f, 0.0f, 0.0f);
+    private static readonly Point MinimumPoint = new(0.0f, 0.0f, 0.0f);
     private readonly List<Point> _points = new();
-    private readonly List<Point> _volume = new();
 
     public void LoadData(string filePath)
     {
@@ -26,10 +25,10 @@ public class ShepardInterpolation
             _points.Add(new Point(binReader.ReadSingle(), binReader.ReadSingle(), binReader.ReadSingle(),
                 binReader.ReadSingle()));
 
-        Console.WriteLine("LOG: Loaded data");
+        Console.WriteLine($"LOG: Loaded data with path: {filePath}");
     }
 
-    public void InterpolateToFile(Interpolation type, string outputFile)
+    public void InterpolateToFile(IEnumerable<Point> volume, Interpolation type, string outputFile)
     {
         if (File.Exists(outputFile))
             outputFile = outputFile.Replace(".", "Replaceable.");
@@ -40,7 +39,7 @@ public class ShepardInterpolation
         {
             case Interpolation.Basic:
             {
-                foreach (var volumePoint in _volume)
+                foreach (var volumePoint in volume)
                 {
                     var shepardInterpolation = InterpolateBasic(volumePoint);
 
@@ -55,15 +54,14 @@ public class ShepardInterpolation
                 var octree = new Octree(_points, MinimumPoint, MaximumPoint);
                 octree.Initialize(8);
 
-                foreach (var volumePoint in _volume)
+                foreach (var volumePoint in volume)
                 {
                     var denominator = 0.0f;
                     var numerator = 0.0f;
 
                     if (Octree.ViableNodes != null)
                         foreach (var viableNode in Octree.ViableNodes)
-                        {
-                            if (viableNode.Contains(volumePoint, R)) {
+                            if (viableNode.Contains(volumePoint, R))
                                 foreach (var point in viableNode.GetPoints())
                                 {
                                     var distance = volumePoint.DistanceTo(point);
@@ -72,19 +70,17 @@ public class ShepardInterpolation
                                     numerator +=
                                         (float)Math.Pow(Math.Max(0, R - distance) / (R * distance), 2) * point.Value;
                                 }
-                            }
-                        }
 
                     var shInterpolationModified = numerator / denominator;
                     var ppmValue = (uint)(shInterpolationModified * 255.0f);
-                    
+
                     // TODO: temp solution
                     if (volumePoint.X > MaximumPoint.X || volumePoint.Y > MaximumPoint.Y ||
                         volumePoint.Z > MaximumPoint.Z ||
                         volumePoint.X < MinimumPoint.X || volumePoint.Y < MinimumPoint.Y ||
                         volumePoint.Z < MinimumPoint.Z)
                         ppmValue = 0;
-                    
+
                     dataOut.Write((byte)ppmValue);
                 }
 
@@ -127,8 +123,10 @@ public class ShepardInterpolation
         return shepardInterpolation;
     }
 
-    public void InitializeVolume(int xRes, int yRes, int zRes)
+    public static IEnumerable<Point> InitializeVolume(int xRes, int yRes, int zRes)
     {
+        var volume = new Point[xRes * yRes * zRes];
+        var index = 0;
         for (var i = 0.0f; i < zRes; i++)
         for (var j = 0.0f; j < yRes; j++)
         for (var k = 0.0f; k < xRes; k++)
@@ -137,9 +135,12 @@ public class ShepardInterpolation
             var y = j / yRes;
             var z = i / zRes;
             var point = new Point(x, y, z);
-            _volume.Add(point);
+            volume[index] = point;
+            index++;
         }
 
         Console.WriteLine($"LOG: Initialized volume with resolution of {xRes}:{yRes}:{zRes}");
+
+        return volume;
     }
 }

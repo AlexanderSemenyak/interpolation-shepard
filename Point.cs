@@ -2,6 +2,14 @@
 
 internal class Point
 {
+    public readonly float Value;
+
+    public readonly float X;
+
+    public readonly float Y;
+
+    public readonly float Z;
+
     public Point(float v1, float v2, float v3, float? v4)
     {
         X = v1;
@@ -17,28 +25,16 @@ internal class Point
         Z = v3;
     }
 
-    public float X { get; set; }
-
-    public float Y { get; set; }
-
-    public float Z { get; set; }
-
-    public float Value { get; set; }
-
     public override string ToString()
     {
         return $"Point({X}, {Y}, {Z}):{Value}";
     }
 
-    public bool IsValid()
-    {
-        return !(X > 1.0f) && !(X < 0.0f) &&
-               !(Y > 1.0f) && !(Y < 0.0f) &&
-               !(Z > 1.0f) && !(Z < 0.0f);
-    }
-
     public float DistanceTo(Point point)
     {
-        return (float)Math.Sqrt(Math.Pow(X - point.X, 2) + Math.Pow(Y - point.Y, 2) + Math.Pow(Z - point.Z, 2));
+        var valueX = X - point.X;
+        var valueY = Y - point.Y;
+        var valueZ = Z - point.Z;
+        return (float)Math.Sqrt(valueX * valueX + valueY * valueY + valueZ * valueZ);
     }
 }
