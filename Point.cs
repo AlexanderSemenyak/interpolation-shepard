@@ -29,4 +29,11 @@ internal class Point
     {
         return $"Point({X}, {Y}, {Z}):{Value}";
     }
+
+    public bool IsValid()
+    {
+        return !(X > 1.0f) && !(X < 0.0f) &&
+               !(Y > 1.0f) && !(Y < 0.0f) &&
+               !(Z > 1.0f) && !(Z < 0.0f);
+    }
 }
