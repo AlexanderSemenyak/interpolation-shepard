@@ -8,10 +8,11 @@ public class ShepardInterpolation
         Modified
     }
 
-    private const double P = 10.0;
+    private const double P = 10.0f;
+    private const float R = 1.0f;
 
     private static readonly Point MaximumPoint = new(1.0f, 1.0f, 1.0f);
-    private static readonly Point MinimumPoint = new(0.0f, 0.0f, 0.0f);
+    private static readonly Point MinimumPoint = new(0.4f, 0.0f, 0.0f);
     private readonly List<Point> _points = new();
     private readonly List<Point> _volume = new();
 
@@ -52,16 +53,40 @@ public class ShepardInterpolation
             case Interpolation.Modified:
             {
                 var octree = new Octree(_points, MinimumPoint, MaximumPoint);
-                octree.Initialize();
+                octree.Initialize(8);
 
                 foreach (var volumePoint in _volume)
+                {
+                    var denominator = 0.0f;
+                    var numerator = 0.0f;
+
                     if (Octree.ViableNodes != null)
                         foreach (var viableNode in Octree.ViableNodes)
-                            if (viableNode.Contains(volumePoint))
+                        {
+                            if (viableNode.Contains(volumePoint, R)) {
                                 foreach (var point in viableNode.GetPoints())
                                 {
-                                    // shepard method
+                                    var distance = volumePoint.DistanceTo(point);
+                                    denominator +=
+                                        (float)Math.Pow(Math.Max(0, R - distance) / (R * distance), 2);
+                                    numerator +=
+                                        (float)Math.Pow(Math.Max(0, R - distance) / (R * distance), 2) * point.Value;
                                 }
+                            }
+                        }
+
+                    var shInterpolationModified = numerator / denominator;
+                    var ppmValue = (uint)(shInterpolationModified * 255.0f);
+                    
+                    // TODO: temp solution
+                    if (volumePoint.X > MaximumPoint.X || volumePoint.Y > MaximumPoint.Y ||
+                        volumePoint.Z > MaximumPoint.Z ||
+                        volumePoint.X < MinimumPoint.X || volumePoint.Y < MinimumPoint.Y ||
+                        volumePoint.Z < MinimumPoint.Z)
+                        ppmValue = 0;
+                    
+                    dataOut.Write((byte)ppmValue);
+                }
 
                 break;
             }
@@ -75,36 +100,30 @@ public class ShepardInterpolation
             $"LOG: Interpolated and wrote data to output file with elapsed time of {elapsedTime.ToString()}");
     }
 
-    private float InterpolateModified(Point volumePoint)
-    {
-        throw new NotImplementedException();
-    }
-
     private float InterpolateBasic(Point volumePoint)
     {
-        var denominatorAccumulated = 0.0f;
-        var numeratorAccumulated = 0.0f;
+        var denominator = 0.0f;
+        var numerator = 0.0f;
         if (volumePoint.X > MaximumPoint.X || volumePoint.Y > MaximumPoint.Y || volumePoint.Z > MaximumPoint.Z ||
             volumePoint.X < MinimumPoint.X || volumePoint.Y < MinimumPoint.Y || volumePoint.Z < MinimumPoint.Z)
             return 0.0f;
         foreach (var point in _points)
         {
-            var distance = Math.Sqrt(Math.Pow(point.X - volumePoint.X, 2) + Math.Pow(point.Y - volumePoint.Y, 2) +
-                                     Math.Pow(point.Z - volumePoint.Z, 2));
+            var distance = volumePoint.DistanceTo(point);
             if (distance <= 0.001) // 0.0 never hits
             {
-                numeratorAccumulated = point.Value;
-                denominatorAccumulated = 1;
+                numerator = point.Value;
+                denominator = 1;
                 Console.WriteLine($"LOG: Break for point {point} and volume point {volumePoint}");
                 break;
             }
 
             var weight = (float)Math.Pow(distance, P);
-            numeratorAccumulated += point.Value / weight;
-            denominatorAccumulated += 1 / weight;
+            numerator += point.Value / weight;
+            denominator += 1 / weight;
         }
 
-        var shepardInterpolation = numeratorAccumulated / denominatorAccumulated;
+        var shepardInterpolation = numerator / denominator;
         return shepardInterpolation;
     }
 
