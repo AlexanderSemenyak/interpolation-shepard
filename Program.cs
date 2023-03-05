@@ -19,16 +19,12 @@ internal static class Program
         var inputFilePath = Path.Combine(projectDirectory + "/data/point-cloud-10k.raw");
 
         // default values
-        var outputFilePath = "output.ppm";
+        string outputFilePath = "output.ppm", type = "modified";
         var parameterP = 10.0;
         float parameterRadius = 0.5f,
-            xMin = 0.0f,
-            yMin = 0.0f,
-            zMin = 0.0f,
-            xMax = 1.0f,
-            yMax = 1.0f,
-            zMax = 1.0f;
-        int xRes = 256, yRes = 256, zRes = 256;
+            xMin = 0.0f, yMin = 0.0f, zMin = 0.0f,
+            xMax = 1.0f, yMax = 1.0f, zMax = 1.0f;
+        int xRes = 64, yRes = 64, zRes = 64;
 
         for (var i = 0; i < args.Length; i++)
             switch (args[i])
@@ -44,6 +40,9 @@ internal static class Program
                     break;
                 case "--R":
                     parameterRadius = Convert.ToSingle(args[i + 1]);
+                    break;
+                case "--method":
+                    type = args[i + 1];
                     break;
                 case "--min-x":
                     xMin = Convert.ToSingle(args[i + 1]);
@@ -74,12 +73,11 @@ internal static class Program
                     break;
             }
 
-        Console.WriteLine(outputFilePath);
+        Console.WriteLine($"LOG: Output file: {outputFilePath}");
 
-        var shepardInterpolation =
+        var shepardInterpolation = 
             new ShepardInterpolation(parameterP, parameterRadius, xMin, yMin, zMin, xMax, yMax, zMax);
         shepardInterpolation.LoadData(inputFilePath);
-        shepardInterpolation.InterpolateToFile(xRes, yRes, zRes, ShepardInterpolation.Interpolation.Basic,
-            outputFilePath);
+        shepardInterpolation.InterpolateToFile(xRes, yRes, zRes, type, outputFilePath);
     }
 }
