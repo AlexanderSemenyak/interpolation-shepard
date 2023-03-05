@@ -8,13 +8,22 @@ internal class ShepardInterpolation
         Modified
     }
 
-    private const double P = 10.0f;
-    private const float R = 1.0f;
+    private static double _p = 10.0f;
+    private static float _r = 0.5f;
 
-    private static readonly Point MaximumPoint = new(1.0f, 1.0f, 1.0f);
-    private static readonly Point MinimumPoint = new(0.0f, 0.0f, 0.0f);
+    private static Point _maximumPoint = new(1.0f, 1.0f, 1.0f);
+    private static Point _minimumPoint = new(0.0f, 0.0f, 0.0f);
     private readonly List<Point> _points = new();
     private readonly List<uint> _writeValues = new();
+
+    public ShepardInterpolation(double parameterP, float parameterRadius, float xMin, float yMin, float zMin, float xMax, float yMax, float zMax)
+    {
+        _p = parameterP;
+        _r = parameterRadius;
+        _minimumPoint = new Point(xMin, yMin, zMin);
+        _maximumPoint = new Point(xMax, yMax, zMax);
+        Console.WriteLine("LOG: Arguments set");
+    }
 
     public void LoadData(string filePath)
     {
@@ -58,7 +67,7 @@ internal class ShepardInterpolation
             }
             case Interpolation.Modified:
             {
-                var octree = new Octree(_points, MinimumPoint, MaximumPoint);
+                var octree = new Octree(_points, _minimumPoint, _maximumPoint);
                 octree.Initialize(8);
 
                 for (var k = 0.0f; k < zRes; k++)
@@ -89,8 +98,8 @@ internal class ShepardInterpolation
                             break;
                         }
 
-                        if (!(distance < R)) continue;
-                        var value = (R - distance) / (R * distance);
+                        if (!(distance < _r)) continue;
+                        var value = (_r - distance) / (_r * distance);
                         var weight = value * value;
 
                         denominator += weight;
@@ -129,8 +138,8 @@ internal class ShepardInterpolation
     {
         var denominator = 0.0f;
         var numerator = 0.0f;
-        if (volumePoint.X > MaximumPoint.X || volumePoint.Y > MaximumPoint.Y || volumePoint.Z > MaximumPoint.Z ||
-            volumePoint.X < MinimumPoint.X || volumePoint.Y < MinimumPoint.Y || volumePoint.Z < MinimumPoint.Z)
+        if (volumePoint.X > _maximumPoint.X || volumePoint.Y > _maximumPoint.Y || volumePoint.Z > _maximumPoint.Z ||
+            volumePoint.X < _minimumPoint.X || volumePoint.Y < _minimumPoint.Y || volumePoint.Z < _minimumPoint.Z)
             return 0.0f;
         foreach (var point in _points)
         {
@@ -143,7 +152,7 @@ internal class ShepardInterpolation
                 break;
             }
 
-            var weight = (float)Math.Pow(distance, P);
+            var weight = (float)Math.Pow(distance, _p);
             numerator += point.Value / weight;
             denominator += 1 / weight;
         }
