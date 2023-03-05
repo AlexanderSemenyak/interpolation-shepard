@@ -2,18 +2,18 @@
 
 public class ShepardInterpolation
 {
-    private const double P = 10.0;
-    private readonly List<Point> _points = new();
-    private readonly List<Point> _volume = new();
-
-    private static readonly Point MaximumPoint = new(1.0f, 1.0f, 1.0f);
-    private static readonly Point MinimumPoint = new(0.0f, 0.0f, 0.0f);
-
     public enum Interpolation
     {
         Basic,
         Modified
     }
+
+    private const double P = 10.0;
+
+    private static readonly Point MaximumPoint = new(1.0f, 1.0f, 1.0f);
+    private static readonly Point MinimumPoint = new(0.0f, 0.0f, 0.0f);
+    private readonly List<Point> _points = new();
+    private readonly List<Point> _volume = new();
 
     public void LoadData(string filePath)
     {
@@ -51,9 +51,18 @@ public class ShepardInterpolation
             }
             case Interpolation.Modified:
             {
-                var parentOctreeNode = new OctreeNode(_points, MinimumPoint, MaximumPoint);
-                parentOctreeNode.Initialize();
-                
+                var octree = new Octree(_points, MinimumPoint, MaximumPoint);
+                octree.Initialize();
+
+                foreach (var volumePoint in _volume)
+                    if (Octree.ViableNodes != null)
+                        foreach (var viableNode in Octree.ViableNodes)
+                            if (viableNode.Contains(volumePoint))
+                                foreach (var point in viableNode.GetPoints())
+                                {
+                                    // shepard method
+                                }
+
                 break;
             }
             default:

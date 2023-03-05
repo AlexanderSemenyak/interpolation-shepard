@@ -2,23 +2,20 @@
 
 internal class Octree
 {
+    public const int MaxPointsOctant = 200;
+
+    public static List<OctreeNode>? ViableNodes;
     private readonly OctreeNode _parentNode;
-    private List<OctreeNode> _viableNodes;
-    private const int MaxPointsPerOctant = 200;
-    
+
     public Octree(List<Point> points, Point minimumPoint, Point maximumPoint)
     {
         _parentNode = new OctreeNode(points, minimumPoint, maximumPoint);
+        ViableNodes = new List<OctreeNode>();
     }
 
     public void Initialize()
     {
         _parentNode.Initialize();
-    }
-
-    public List<OctreeNode> GetViableNodes()
-    {
-        return _viableNodes;
     }
 }
 
@@ -28,7 +25,6 @@ internal class OctreeNode
     private readonly Point _maximumPoint;
     private readonly Point _minimumPoint;
     private readonly List<Point> _points;
-    private const int MaxPointsOctant = 200;
 
     public OctreeNode(List<Point> points, Point minimumPoint, Point maximumPoint)
     {
@@ -59,7 +55,7 @@ internal class OctreeNode
 
         var averagePoint = new Point((_maximumPoint.X + _minimumPoint.X) / 2, (_maximumPoint.Y + _minimumPoint.Y) / 2,
             (_maximumPoint.Z + _minimumPoint.Z) / 2);
-        
+
         foreach (var point in _points)
             if (point.X < averagePoint.X)
                 if (point.Y < averagePoint.Y)
@@ -101,9 +97,14 @@ internal class OctreeNode
             _maximumPoint));
 
         foreach (var child in _children)
-        {
-            if (child._points.Count > MaxPointsOctant)
+            if (child._points.Count > Octree.MaxPointsOctant)
                 child.Initialize();
-        }
+            else
+                Octree.ViableNodes?.Add(child);
+    }
+
+    public List<Point> GetPoints()
+    {
+        return _points;
     }
 }
