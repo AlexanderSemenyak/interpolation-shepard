@@ -41,50 +41,51 @@ internal class ShepardInterpolation
         switch (type)
         {
             case "basic":
-            {
-                for (var k = 0.0f; k < zRes; k++)
-                for (var j = 0.0f; j < yRes; j++)
-                for (var i = 0.0f; i < xRes; i++)
                 {
-                    var x = i / xRes;
-                    var y = j / yRes;
-                    var z = k / zRes;
-                    var volumePoint = new Point(x, y, z);
-                    var shInterpolationBasic = GetBasicInterpolation(volumePoint);
+                    for (var k = 0.0f; k < zRes; k++)
+                        for (var j = 0.0f; j < yRes; j++)
+                            for (var i = 0.0f; i < xRes; i++)
+                            {
+                                var x = i / xRes;
+                                var y = j / yRes;
+                                var z = k / zRes;
+                                var volumePoint = new Point(x, y, z);
+                                var shInterpolationBasic = GetBasicInterpolation(volumePoint);
 
-                    _valuesForOutput.Add(shInterpolationBasic);
+                                _valuesForOutput.Add(shInterpolationBasic);
+                            }
+
+                    break;
                 }
-
-                break;
-            }
             case "modified":
-            {
-                var octree = new Octree(_points, _minimumPoint, _maximumPoint);
-                octree.Initialize(8);
-
-                for (var k = 0.0f; k < zRes; k++)
-                for (var j = 0.0f; j < yRes; j++)
-                for (var i = 0.0f; i < xRes; i++)
                 {
-                    var x = i / xRes;
-                    var y = j / yRes;
-                    var z = k / zRes;
-                    var volumePoint = new Point(x, y, z);
+                    var octree = new Octree(_points, _minimumPoint, _maximumPoint);
+                    octree.Initialize(8);
 
-                    // TODO: temp solution
-                    if (volumePoint.X > _maximumPoint.X || volumePoint.Y > _maximumPoint.Y || volumePoint.Z > _maximumPoint.Z || 
-                        volumePoint.X < _minimumPoint.X || volumePoint.Y < _minimumPoint.Y || volumePoint.Z < _minimumPoint.Z) {
-                        _valuesForOutput.Add(0.0f);
-                    }
-                    else
-                    {
-                        var shInterpolationModified = GetModifiedInterpolation(volumePoint);
-                        _valuesForOutput.Add(shInterpolationModified);
-                    }
+                    for (var k = 0.0f; k < zRes; k++)
+                        for (var j = 0.0f; j < yRes; j++)
+                            for (var i = 0.0f; i < xRes; i++)
+                            {
+                                var x = i / xRes;
+                                var y = j / yRes;
+                                var z = k / zRes;
+                                var volumePoint = new Point(x, y, z);
+
+                                // TODO: temp solution
+                                if (volumePoint.X > _maximumPoint.X || volumePoint.Y > _maximumPoint.Y || volumePoint.Z > _maximumPoint.Z ||
+                                    volumePoint.X < _minimumPoint.X || volumePoint.Y < _minimumPoint.Y || volumePoint.Z < _minimumPoint.Z)
+                                {
+                                    _valuesForOutput.Add(0.0f);
+                                }
+                                else
+                                {
+                                    var shInterpolationModified = GetModifiedInterpolation(volumePoint);
+                                    _valuesForOutput.Add(shInterpolationModified);
+                                }
+                            }
+
+                    break;
                 }
-
-                break;
-            }
             default:
                 throw new NotImplementedException("ERROR: Not implemented type of interpolation");
         }
@@ -114,26 +115,29 @@ internal class ShepardInterpolation
 
         if (Octree.ViableNodes == null) return 0.0f;
 
-        foreach (var viableNode in Octree.ViableNodes)
-            // if (viableNode.Contains(volume[i], R))
-        foreach (var point in viableNode.GetPoints())
-        {
-            var distance = volumePoint.DistanceTo(point);
-
-            if (distance <= 0.001) // 0.0 never hits
+        foreach (var viableNode in Octree.ViableNodes) {
+            if (viableNode.Contains(volumePoint, _r))
             {
-                numerator = point.Value;
-                denominator = 1;
-                Console.WriteLine($"LOG: Break for point {point} and volume point {volumePoint}");
-                break;
+                foreach (var point in viableNode.GetPoints())
+                {
+                    var distance = volumePoint.DistanceTo(point);
+
+                    if (distance <= 0.001) // 0.0 never hits
+                    {
+                        numerator = point.Value;
+                        denominator = 1;
+                        Console.WriteLine($"LOG: Break for point {point} and volume point {volumePoint}");
+                        break;
+                    }
+
+                    if (!(distance < _r)) continue;
+                    var value = (_r - distance) / (_r * distance);
+                    var weight = value * value;
+
+                    denominator += weight;
+                    numerator += weight * point.Value;
+                }
             }
-
-            if (!(distance < _r)) continue;
-            var value = (_r - distance) / (_r * distance);
-            var weight = value * value;
-
-            denominator += weight;
-            numerator += weight * point.Value;
         }
 
         return numerator / denominator;
