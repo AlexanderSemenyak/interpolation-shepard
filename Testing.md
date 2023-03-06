@@ -68,3 +68,23 @@ PS C:\Git\Masters\nrg\InterpolationShepard\builds\First>
 ```
 
 Speedup: 7.722271285830773
+
+
+## 100k 256x256x256 Linux
+
+```
+wrath@wrath-inspiron5570 ~/g/i/b/D/net6.0 (master) [SIGABRT]> ./InterpolationShepard --input point-cloud-100k.raw --res-x 256                      --res-y 256 --res-y 256 --method modified
+LOG: Output file: output.raw
+LOG: Arguments set
+LOG: Loaded data with path: point-cloud-100k.raw
+LOG: Initialized octree max with depth of 8
+LOG: Break for point Point(0.82747567, 0.027923051, 2.7217625E-06):0 and volume point Point(0.828125, 0.02734375, 0):0
+...
+LOG: Break for point Point(0.88359237, 0.83633727, 0.9686241):0 and volume point Point(0.8828125, 0.8359375, 0.96875):0
+LOG: Break for point Point(0.1799816, 0.8469927, 0.9684739):0.25882354 and volume point Point(0.1796875, 0.84765625, 0.96875):0
+LOG: Break for point Point(0.66446096, 0.84717005, 0.9684554):0.29803923 and volume point Point(0.6640625, 0.84765625, 0.96875):0
+LOG: Break for point Point(0.37062335, 0.8832643, 0.96870834):0.32156864 and volume point Point(0.37109375, 0.8828125, 0.96875):0
+LOG: Break for point Point(0.35215503, 0.93801194, 0.96817774):0.3137255 and volume point Point(0.3515625, 0.9375, 0.96875):0
+LOG: Break for point Point(0.5584269, 0.9563323, 0.9692281):0.30980393 and volume point Point(0.55859375, 0.95703125, 0.96875):0
+LOG: Interpolated and wrote data to output file with elapsed time of 01:06:32.9719327
+```
